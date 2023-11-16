@@ -1,4 +1,4 @@
-from typing import Dict, Text
+from typing import Dict, Text, Tuple, Optional
 
 import numpy as np
 
@@ -21,6 +21,10 @@ class HighwayEnv(AbstractEnv):
     staying on the rightmost lanes and avoiding collisions.
     """
 
+    def __init__(self, config: dict = None, render_mode: Optional[str] = None):
+        super().__init__(config, render_mode)
+        self.distance_covered = 0.0
+
     @classmethod
     def default_config(cls) -> dict:
         config = super().default_config()
@@ -31,7 +35,7 @@ class HighwayEnv(AbstractEnv):
             "action": {
                 "type": "DiscreteMetaAction",
             },
-            "lanes_count": 4,
+            "lanes_count": 5,
             "vehicles_count": 50,
             "controlled_vehicles": 1,
             "initial_lane_id": None,
@@ -46,13 +50,28 @@ class HighwayEnv(AbstractEnv):
             "lane_change_reward": 0,   # The reward received at each lane change action.
             "reward_speed_range": [20, 30],
             "normalize_reward": True,
-            "offroad_terminal": False
+            "offroad_terminal": False,
+            "screen_width": 1000,
+            "screen_height": 300,
+            "centering_position": [0.1, 0.5]
         })
         return config
 
     def _reset(self) -> None:
         self._create_road()
         self._create_vehicles()
+        self.distance_covered = 0.0
+        self.initial_vehicle_position = self.vehicle.position[0]
+
+    def step(self, action: Action) -> Tuple[Observation, float, bool, bool, dict]:
+        obs, reward, terminated, truncated, info = super().step(action)
+
+        # Calculate the distance covered by the controlled vehicle and update info
+        current_vehicle_position = self.vehicle.position[0]
+        self.distance_covered = current_vehicle_position - self.initial_vehicle_position
+        info.update({"distance_covered": self.distance_covered})
+
+        return obs, reward, terminated, truncated, info
 
     def _create_road(self) -> None:
         """Create a road composed of straight adjacent lanes."""
