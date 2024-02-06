@@ -4,7 +4,8 @@ import gymnasium as gym
 from custom_wrapper import CustomWrapper
 from highway_env.road.lane import AbstractLane
 from highway_env.vehicle.behavior import IDMVehicle
-from config_env import EnvConfig
+from config_env import env_config
+
 
 class SimpleAgent:
     """
@@ -29,8 +30,7 @@ class SimpleAgent:
         This method sets up the highway environment, custom wrapper, and defines parameters.
         """
         self.env = gym.make("highway-v0", render_mode="human")
-        env_config_instance = EnvConfig()
-        self.env.configure(env_config_instance.env_config())
+        self.env.configure(env_config())
         self.env = CustomWrapper(self.env)
 
         # Environment parameters
@@ -121,7 +121,7 @@ class SimpleAgent:
                 action = 1
                 # print("Left lane empty, go to left lane")
             else:
-                action = 6
+                action = 3  # Could have improvements
                 # print("Slow down")
         else:
             action = 0

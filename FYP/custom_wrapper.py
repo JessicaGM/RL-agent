@@ -62,7 +62,7 @@ class CustomWrapper(gym.Wrapper):
             return obs, reward, terminated, truncated, info
 
         # Adjust speed
-        if 3 <= action <= 6:
+        if 3 <= action <= 5:
             # Decelerate
             if action == 3:
                 change = -1  # change speed by -1
