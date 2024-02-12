@@ -1,7 +1,7 @@
 import gymnasium as gym
 
-from lane_changer import LaneChanger
-from speed_changer import SpeedChanger
+from FYP.lane_changer import LaneChanger
+from FYP.speed_changer import SpeedChanger
 
 
 class CustomWrapper(gym.Wrapper):
@@ -27,7 +27,11 @@ class CustomWrapper(gym.Wrapper):
 
     def __init__(self, env):
         super().__init__(env)
+        self.distance_covered = None
         self.step_count = 0
+
+    def __call__(self):
+        return self.env
 
     def reset(self, **kwargs):
         """Reset the environment."""
@@ -35,7 +39,20 @@ class CustomWrapper(gym.Wrapper):
         return self.env.reset(**kwargs)
 
     def step(self, action):
-        """Take a step in the environment based on the provided action."""
+        """
+        Take a step in the environment based on the provided action.
+
+        Args:
+            action (int): The action to take. Choose between:
+                - 0: Go forward.
+                - 1: Change to the left lane.
+                - 2: Change to the right lane.
+                - 3: Slow down by around 1m/s (gradually slow down).
+                - 4: Speed up by around 1m/s (gradually speed up).
+                - 5: Maintain the current speed.
+        Returns:
+            Tuple: A tuple containing the observation, reward, termination flag, truncated flag, and additional info.
+        """
         self.step_count += 1
         # print("Step count:", self.step_count)
 
@@ -62,17 +79,16 @@ class CustomWrapper(gym.Wrapper):
             return obs, reward, terminated, truncated, info
 
         # Adjust speed
-        if 3 <= action <= 5:
-            # Decelerate
+        if 3 <= action <= 7:
+            # Gradually slow down
             if action == 3:
                 change = -1  # change speed by -1
-            # Accelerate
+            # Gradually speed up
             if action == 4:
                 change = 1  # change speed by 1
             # Maintain speed
             if action == 5:
                 change = 0  # no change
-            # Decelerate quicker
             changer = SpeedChanger(self.env, change)
             # print(obs, info)
             obs, reward, terminated, truncated, info = changer.step()

@@ -1,10 +1,10 @@
 import time
 import gymnasium as gym
 
+from FYP.config_env import ConfigEnv
 from custom_wrapper import CustomWrapper
 from highway_env.road.lane import AbstractLane
 from highway_env.vehicle.behavior import IDMVehicle
-from config_env import env_config
 
 
 class SimpleAgent:
@@ -17,6 +17,7 @@ class SimpleAgent:
         LEFT_MOST_LANE (int): The index of the leftmost lane.
         HIGHEST_AWARDED_SPEED (float): The highest speed for rewarding the agent.
         TIME_TO_CHANGE_LANE (int): Time considered to change lane.
+        CONTROLLED_VEHICLE_INDEX (int): Index of the controlled vehicle.
 
     Methods:
         run():
@@ -29,8 +30,7 @@ class SimpleAgent:
 
         This method sets up the highway environment, custom wrapper, and defines parameters.
         """
-        self.env = gym.make("highway-v0", render_mode="human")
-        self.env.configure(env_config())
+        self.env = ConfigEnv().make_configured_env(render_mode="human")
         self.env = CustomWrapper(self.env)
 
         # Environment parameters
@@ -68,6 +68,7 @@ class SimpleAgent:
     def _select_action(self, vehicle_data):
         """
         Select an action based on the current environment conditions.
+        Very simple scenarios.
 
         Args:
             vehicle_data (array): Information about vehicles in the environment.
@@ -110,7 +111,7 @@ class SimpleAgent:
         elif (not self.HIGHEST_AWARDED_SPEED - 5 <= self.env.vehicle.speed
               and not self.env.vehicle.speed > self.HIGHEST_AWARDED_SPEED and not vehicle_in_front):
             action = 4
-            # print("Accelerate")
+            # print("Speed up")
 
         elif vehicle_in_front:
             # print("Vehicle in front")

@@ -1,5 +1,7 @@
 import numpy as np
 
+from highway_env.road.lane import AbstractLane
+
 
 class LaneChanger:
     """Class representing behavior for changing lanes."""
@@ -22,6 +24,11 @@ class LaneChanger:
         current_lane = self.env.vehicle.lane_index[2]
         return current_lane
 
+    def get_current_y_pos(self):
+        """Get the current y position of the vehicle."""
+        current_y_pos = self.env.vehicle.position[1]
+        return current_y_pos
+
     def step(self):
         """Take a step in the environment."""
         self.step_count += 1
@@ -31,14 +38,27 @@ class LaneChanger:
 
     def done(self):
         """Check if the lane change is completed."""
-        done = self.destination_lane == self.get_current_lane()
+        abstract_destination_lane = self.destination_lane * AbstractLane.DEFAULT_WIDTH
+
+        if self.change > 0:
+            done = (abstract_destination_lane <= self.get_current_y_pos() < abstract_destination_lane + AbstractLane.DEFAULT_WIDTH / 2)
+        elif self.change < 0:
+            done = (abstract_destination_lane - AbstractLane.DEFAULT_WIDTH / 2 < self.get_current_y_pos() <= abstract_destination_lane)
+        else:
+            done = self.destination_lane == self.get_current_lane()
+
         if done:
-            self.env.vehicle.heading = 0  # straighten
-            self.env.vehicle.action['steering'] = 0.0
-            # print(f"Done: {done}, Current lane: {self.get_current_lane()}, Destination lane: {
-            # self.destination_lane}, " f"Vehicle pos: {self.env.vehicle.position}, Steering: {
-            # self.env.vehicle.action['steering']}")
+            self._reset_after_change()
+
         return done
+
+    def _reset_after_change(self):
+        """Reset after completing lane change."""
+        self.env.vehicle.heading = 0  # straighten
+        self.env.vehicle.action['steering'] = 0.0
+        # print(f"Done: {done}, Current lane: {self.get_current_lane()},
+        # Destination lane: {self.destination_lane}, Vehicle pos: {self.env.vehicle.position},
+        # Steering: {self.env.vehicle.action['steering']}")
 
     def choose_action(self, current_lane, destination_lane):
         """Choose the low-level action for the lane change."""
@@ -51,7 +71,6 @@ class LaneChanger:
         elif lane_difference == 0:
             steering = 0
 
-        # print(f"Lanes to destination:
-        # {destination_lane - current_lane}, Acceleration: {acceleration}, Steering: {steering}")
+        # print(f"Lanes to destination: {destination_lane - current_lane}, Acceleration: {acceleration}, Steering: {steering}")
 
         return [acceleration, steering]

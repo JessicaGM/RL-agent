@@ -27,7 +27,8 @@ class SpeedChanger:
 
     def done(self):
         """Check if the desired speed is reached."""
-        return self.desired_speed - 0.5 < self.get_current_speed() <= self.desired_speed
+        self.env.vehicle.action['acceleration'] = 0
+        return self.desired_speed - 0.2 < self.get_current_speed() <= self.desired_speed
 
     def choose_action(self, current_speed, desired_speed):
         """Choose the low-level action for changing speed."""
