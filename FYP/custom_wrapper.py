@@ -27,7 +27,6 @@ class CustomWrapper(gym.Wrapper):
 
     def __init__(self, env):
         super().__init__(env)
-        self.distance_covered = None
         self.step_count = 0
 
     def __call__(self):
@@ -79,7 +78,7 @@ class CustomWrapper(gym.Wrapper):
             return obs, reward, terminated, truncated, info
 
         # Adjust speed
-        if 3 <= action <= 7:
+        if 3 <= action <= 5:
             # Gradually slow down
             if action == 3:
                 change = -1  # change speed by -1
