@@ -32,7 +32,6 @@ class ConfigEnv:
                 "longitudinal": True,
                 "lateral": True,
             },
-            "policy_frequency": 5,  # updated to stop car spinning (a must for Continuous action)
             "lanes_count": 5,
             "vehicles_count": 20,
             "controlled_vehicles": 1,
