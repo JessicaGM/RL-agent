@@ -1,3 +1,4 @@
+import sys
 import gymnasium as gym
 from sb3_contrib import TQC
 from stable_baselines3 import PPO
@@ -29,7 +30,6 @@ def train_ppo(env):
     """
     n_cpu = 6
     batch_size = 64
-    env = make_vec_env(env, n_envs=n_cpu, vec_env_cls=SubprocVecEnv, seed=0)
     model = PPO("MlpPolicy",
                 env,
                 policy_kwargs=dict(net_arch=[dict(pi=[256, 256], vf=[256, 256])]),
@@ -63,8 +63,6 @@ def train_tqc(env):
     See:
     - `Parameters taken from: <https://github.com/Farama-Foundation/HighwayEnv/issues/331>`
     """
-    n_envs = 8
-    env = make_vec_env(env, n_envs=n_envs, vec_env_cls=SubprocVecEnv)
     model = TQC("MlpPolicy",
                 env,
                 policy_kwargs=dict(
@@ -95,7 +93,7 @@ def train_tqc(env):
 
 if __name__ == "__main__":
 
-    env_action_type = "continuous"
+    env_action_type = "high-level"
     """
     str: Specifies the type of action for the environment. 
     Choose between 'continuous' for default continuous agent 
@@ -115,7 +113,7 @@ if __name__ == "__main__":
     'train_more' to continue training a pre-trained model.
     """
 
-    log_path = "models/highway-env_0-cars_PPO_continuous/"
+    log_path = "models/highway"
     """
     str: Specifies the directory path where log files will be saved.
     """
@@ -130,11 +128,9 @@ if __name__ == "__main__":
     str: Specifies the file path for saving the updated model checkpoint after additional training.
     """
 
-    if env_action_type == "continuous":
-        env = ConfigEnv().make_configured_env
+    env = ConfigEnv().make_configured_env()
 
-    elif env_action_type == "high-level":
-        env = ConfigEnv().make_configured_env()
+    if env_action_type == "high-level":
         env = CustomWrapper(env)
 
     if mode == "train":
@@ -148,9 +144,9 @@ if __name__ == "__main__":
     if mode == "train_more":
         # Load the initial model for further training
         if algorithm_type == "PPO":
-            model = PPO.load(model_path, env=env())
+            model = PPO.load(model_path, env=env)
         elif algorithm_type == "TQC":
-            model = TQC.load(model_path, env=env())
+            model = TQC.load(model_path, env=env)
         else:
             print("Specify a valid algorithm type.")
 
