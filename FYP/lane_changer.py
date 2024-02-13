@@ -38,14 +38,7 @@ class LaneChanger:
 
     def done(self):
         """Check if the lane change is completed."""
-        abstract_destination_lane = self.destination_lane * AbstractLane.DEFAULT_WIDTH
-
-        if self.change > 0:
-            done = (abstract_destination_lane <= self.get_current_y_pos() < abstract_destination_lane + AbstractLane.DEFAULT_WIDTH / 2)
-        elif self.change < 0:
-            done = (abstract_destination_lane - AbstractLane.DEFAULT_WIDTH / 2 < self.get_current_y_pos() <= abstract_destination_lane)
-        else:
-            done = self.destination_lane == self.get_current_lane()
+        done = self.destination_lane == self.get_current_lane()
 
         if done:
             self._reset_after_change()
