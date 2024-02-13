@@ -24,11 +24,6 @@ class LaneChanger:
         current_lane = self.env.vehicle.lane_index[2]
         return current_lane
 
-    def get_current_y_pos(self):
-        """Get the current y position of the vehicle."""
-        current_y_pos = self.env.vehicle.position[1]
-        return current_y_pos
-
     def step(self):
         """Take a step in the environment."""
         self.step_count += 1
