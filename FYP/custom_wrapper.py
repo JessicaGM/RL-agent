@@ -1,10 +1,11 @@
 import gymnasium as gym
+from gymnasium import spaces
 
 from FYP.lane_changer import LaneChanger
 from FYP.speed_changer import SpeedChanger
 
 
-class CustomWrapper(gym.Wrapper):
+class CustomWrapper(gym.ActionWrapper):
     """
     A custom wrapper for modifying the behavior of an environment.
 
@@ -28,9 +29,7 @@ class CustomWrapper(gym.Wrapper):
     def __init__(self, env):
         super().__init__(env)
         self.step_count = 0
-
-    def __call__(self):
-        return self.env
+        self.action_space = spaces.Discrete(6)
 
     def reset(self, **kwargs):
         """Reset the environment."""
@@ -69,12 +68,12 @@ class CustomWrapper(gym.Wrapper):
             # Change right lane
             if action == 2:
                 change = 1
+
+            # Low-level
             changer = LaneChanger(self.env, change)
             obs, reward, terminated, truncated, info = changer.step()
-            # print(obs, info)
             while not changer.done() and not terminated:
                 obs, reward, terminated, truncated, info = changer.step()
-                # print(obs, info)
             return obs, reward, terminated, truncated, info
 
         # Adjust speed
@@ -88,10 +87,10 @@ class CustomWrapper(gym.Wrapper):
             # Maintain speed
             if action == 5:
                 change = 0  # no change
+
+            # Low-level
             changer = SpeedChanger(self.env, change)
-            # print(obs, info)
             obs, reward, terminated, truncated, info = changer.step()
             while not changer.done() and not terminated:
                 obs, reward, terminated, truncated, info = changer.step()
-                # print(obs, info)
             return obs, reward, terminated, truncated, info
