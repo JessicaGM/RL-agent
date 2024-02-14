@@ -28,7 +28,7 @@ class ConfigEnv:
             },
             "action": {
                 "type": "ContinuousAction",
-                "steering_range": [-0.5, 0.5],  # updated to stop car spinning
+                #"steering_range": [-0.5, 0.5],  # test with and without
                 "longitudinal": True,
                 "lateral": True,
             },
