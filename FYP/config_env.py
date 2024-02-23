@@ -28,7 +28,6 @@ class ConfigEnv:
             },
             "action": {
                 "type": "ContinuousAction",
-                #"steering_range": [-0.5, 0.5],  # test with and without
                 "longitudinal": True,
                 "lateral": True,
             },
@@ -47,7 +46,7 @@ class ConfigEnv:
             "lane_change_reward": 0,  # The reward received at each lane change action.
             "reward_speed_range": [20, 30],
             "normalize_reward": True,
-            "offroad_terminal": False,  # learn to stay on the road rather than terminate episode
+            "offroad_terminal": True,  # terminate episode
             "screen_width": 1000,
             "screen_height": 500,
             "centering_position": [0.1, 0.5],
