@@ -21,7 +21,7 @@ elif algorithm_type == "TQC":
 else:
     raise ValueError("Specify a valid algorithm type.")
 
-env_c = Monitor(env, eval_path, info_keywords=('distance_covered',))
+env_c = Monitor(env, eval_path)
 env_c.reset()
 
 # Number of episodes for evaluation
@@ -35,8 +35,6 @@ for episode in range(num_episodes):
         action, _states = model.predict(obs, deterministic=True)
         obs, reward, done, truncated, info = env_c.step(action)
 
-        # Add custom metric to the monitor log csv
-        distance_covered = info.get("distance_covered", 0.0)
         env_c.render()
 
         # print(info)
