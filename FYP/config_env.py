@@ -31,6 +31,8 @@ class ConfigEnv:
                 "longitudinal": True,
                 "lateral": True,
             },
+            "simulation_frequency": 15,  # [Hz]
+            "policy_frequency": 15,  # [Hz]
             "lanes_count": 5,
             "vehicles_count": 20,
             "controlled_vehicles": 1,

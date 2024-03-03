@@ -11,12 +11,14 @@ class SpeedChanger:
             change (int): The speed change direction (-1 for deceleration, 1 for acceleration).
         """
         self.env = env
+        self.change = change
         self.desired_speed = self.get_current_speed() + change
         self.step_count = 0
+        self.offset = (1/(self.env.unwrapped.config['policy_frequency']))/2
 
     def get_current_speed(self):
         """Get the current speed of the vehicle."""
-        current_speed = self.env.vehicle.speed
+        current_speed = self.env.unwrapped.vehicle.speed
         return current_speed
 
     def step(self):
@@ -27,16 +29,18 @@ class SpeedChanger:
 
     def done(self):
         """Check if the desired speed is reached."""
-        self.env.vehicle.action['acceleration'] = 0
-        done = self.desired_speed - 0.5 < self.get_current_speed() <= self.desired_speed
-        # if done:
-        #     print("Done: Reached desired speed")
+        acceleration = self.env.unwrapped.vehicle.action['acceleration']
+
+        done = (self.desired_speed - self.offset < self.get_current_speed() <= self.desired_speed)
+        if done:
+            self.env.unwrapped.vehicle.action['acceleration'] = 0
+            # print("Done: Reached desired speed")
         return done
 
     def choose_action(self, current_speed, desired_speed):
         """Choose the low-level action for changing speed."""
-        steering = self.env.vehicle.action['steering']
-        acceleration = self.env.vehicle.action['acceleration']
+        steering = self.env.unwrapped.vehicle.action['steering']
+        acceleration = self.env.unwrapped.vehicle.action['acceleration']
 
         # print(f"Initial - steering: {steering} & acceleration: {acceleration}")
 

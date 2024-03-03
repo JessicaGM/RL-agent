@@ -7,7 +7,7 @@ from highway_env.road.lane import AbstractLane
 from highway_env.vehicle.behavior import IDMVehicle
 
 
-class SimpleAgent:
+class HardcodedAgent:
     """
     An agent that controls a vehicle in a highway environment based on hardcoded action selection.
 
@@ -131,5 +131,5 @@ class SimpleAgent:
 
 
 if __name__ == "__main__":
-    agent = SimpleAgent()
+    agent = HardcodedAgent()
     agent.run()

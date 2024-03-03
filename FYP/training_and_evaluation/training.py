@@ -1,21 +1,23 @@
-import sys
-import gymnasium as gym
-from sb3_contrib import TQC
 from stable_baselines3 import PPO
-from torch.distributions import Categorical
-import torch
-import torch.nn as nn
-import numpy as np
-from torch.nn import functional as F
-from stable_baselines3.common.env_util import make_vec_env
-from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
-from stable_baselines3.common.vec_env import SubprocVecEnv
-import highway_env
+from stable_baselines3.common.callbacks import BaseCallback
+
 from FYP.config_env import ConfigEnv
 from FYP.custom_wrapper import CustomWrapper
 
 
-def train_ppo(env):
+class CustomCallback(BaseCallback):
+    def __init__(self, env_wrapper, verbose=0):
+        super(CustomCallback, self).__init__(verbose)
+        self.env_wrapper = env_wrapper
+
+    def _on_step(self) -> bool:
+        # Log the low-level step count to TensorBoard
+        if self.env_wrapper is not None:
+            self.logger.record("other/LL_step_count", self.env_wrapper.LL_step_count)
+        return True  # Continue training
+
+
+def train_ppo(env, env_action_type):
     """
     Train PPO agent on the provided environment.
 
@@ -42,48 +44,10 @@ def train_ppo(env):
                 tensorboard_log=log_path)
 
     # Train the agent
-    model.learn(total_timesteps=int(5e4))
-
-    # Save the model
-    model.save(model_path)
-
-    return model
-
-
-def train_tqc(env):
-    """
-    Train TQC agent on the provided environment.
-
-    Args:
-        env: The environment to train the agent on.
-
-    Returns:
-        TQC: The trained TQC model.
-
-    See:
-    - `Parameters taken from: <https://github.com/Farama-Foundation/HighwayEnv/issues/331>`
-    """
-    model = TQC("MlpPolicy",
-                env,
-                policy_kwargs=dict(
-                    n_critics=5,
-                    n_quantiles=25,
-                    net_arch=dict(pi=[256, 256], qf=[512, 512, 512]),
-                    log_std_init=-3,
-                ),
-                batch_size=256,
-                learning_rate=3e-4,
-                train_freq=8,
-                gradient_steps=8,
-                tau=0.005,
-                gamma=0.95,
-                verbose=2,
-                learning_starts=100,
-                use_sde=True,
-                tensorboard_log=log_path)
-
-    # Train the agent
-    model.learn(total_timesteps=int(2e4))
+    if env_action_type == "high-level":
+        model.learn(total_timesteps=int(5e4), callback=CustomCallback(env_wrapper=env, verbose=1))
+    else:
+        model.learn(total_timesteps=int(5e4))
 
     # Save the model
     model.save(model_path)
@@ -98,12 +62,6 @@ if __name__ == "__main__":
     str: Specifies the type of action for the environment. 
     Choose between 'continuous' for default continuous agent 
     or 'high-level' for hierarchical agent.
-    """
-
-    algorithm_type = "PPO"
-    """
-    str: Specifies the reinforcement learning algorithm to be used.
-    Choose between 'PPO' or 'TQC'.
     """
 
     mode = "train"
@@ -134,24 +92,17 @@ if __name__ == "__main__":
         env = CustomWrapper(env)
 
     if mode == "train":
-        if algorithm_type == "PPO":
-            model = train_ppo(env)
-        elif algorithm_type == "TQC":
-            model = train_tqc(env)
-        else:
-            print("Specify a valid algorithm type.")
+        model = train_ppo(env, env_action_type)
 
     if mode == "train_more":
         # Load the initial model for further training
-        if algorithm_type == "PPO":
-            model = PPO.load(model_path, env=env)
-        elif algorithm_type == "TQC":
-            model = TQC.load(model_path, env=env)
-        else:
-            print("Specify a valid algorithm type.")
+        model = PPO.load(model_path, env=env)
 
         # Continue training the loaded model for a longer duration
-        model.learn(total_timesteps=int(5e4))
+        if env_action_type == "high-level":
+            model.learn(total_timesteps=int(5e4), callback=CustomCallback(env_wrapper=env, verbose=1))
+        else:
+            model.learn(total_timesteps=int(5e4))
 
         # Save the model after additional training
         model.save(updated_model_path)
