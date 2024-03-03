@@ -2,7 +2,7 @@ from stable_baselines3 import PPO
 from stable_baselines3.common.callbacks import BaseCallback
 
 from FYP.config_env import ConfigEnv
-from FYP.custom_wrapper import CustomWrapper
+from FYP.custom_actions import CustomActions
 
 
 class CustomCallback(BaseCallback):
@@ -10,7 +10,7 @@ class CustomCallback(BaseCallback):
     Custom callback for logging additional information during training.
 
     Attributes:
-        env_wrapper (CustomWrapper): The environment wrapper to access additional data.
+        env_wrapper (CustomActions): The environment wrapper to access additional data.
     """
     def __init__(self, env_wrapper, verbose=0):
         super(CustomCallback, self).__init__(verbose)
@@ -78,7 +78,7 @@ if __name__ == "__main__":
 
     # Environment setup
     env = ConfigEnv().make_configured_env()
-    env = CustomWrapper(env) if env_action_type == "high-level" else env
+    env = CustomActions(env) if env_action_type == "high-level" else env
 
     # Train or continue training the model
     model = train_ppo(env, env_action_type, log_path, model_path, mode=mode)

@@ -5,9 +5,9 @@ from FYP.lane_changer import LaneChanger
 from FYP.speed_changer import SpeedChanger
 
 
-class CustomWrapper(gym.ActionWrapper):
+class CustomActions(gym.ActionWrapper):
     """
-    A custom wrapper for the Gymnasium environment to introduce high-level actions for an autonomous vehicle simulation.
+    A custom actions for the Gymnasium environment to introduce high-level actions for an autonomous vehicle simulation.
 
     This wrapper modifies the original environment's action space to support high-level actions such as lane changing and
     speed adjustment, abstracting the lower-level actions required to perform these tasks. It keeps track of both

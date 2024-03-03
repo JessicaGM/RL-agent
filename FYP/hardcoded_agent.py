@@ -2,7 +2,7 @@ import time
 import gymnasium as gym
 
 from FYP.config_env import ConfigEnv
-from custom_wrapper import CustomWrapper
+from custom_actions import CustomActions
 from highway_env.road.lane import AbstractLane
 from highway_env.vehicle.behavior import IDMVehicle
 
@@ -30,7 +30,7 @@ class HardcodedAgent:
         Initializes the agent by setting up the environment and defining key operational parameters.
         """
         self.env = ConfigEnv().make_configured_env(render_mode="human")
-        self.env = CustomWrapper(self.env)
+        self.env = CustomActions(self.env)
 
         # Define operational parameters based on environment configuration
         self.RIGHT_MOST_LANE = self.env.unwrapped.config['lanes_count'] - 1
