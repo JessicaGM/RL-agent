@@ -1,14 +1,26 @@
 
 class SpeedChanger:
-    """Class representing behavior for changing speed."""
+    """
+    A behavior model for adjusting the speed of a vehicle within a highway environment.
+
+    This class manages the acceleration or deceleration of a vehicle to reach a desired speed,
+    taking into account the environment's policy frequency to determine the granularity of speed adjustments.
+
+    Attributes:
+        env (Environment): The simulation environment containing the vehicle.
+        change (int): Indicates the direction and magnitude of the speed change (-1 for deceleration, 1 for acceleration).
+        desired_speed (float): The target speed the vehicle aims to reach.
+        step_count (int): Number of steps taken since the beginning of the speed adjustment.
+        offset (float): A small margin around the desired speed to account for the granularity of speed adjustments.
+    """
 
     def __init__(self, env, change):
         """
-        Initialize the SpeedChanger.
+        Initializes a SpeedChanger instance.
 
         Args:
-            env (HighwayEnv): The environment.
-            change (int): The speed change direction (-1 for deceleration, 1 for acceleration).
+            env: The environment in which the vehicle operates.
+            change (int): Specifies the direction and magnitude of the speed change (-1, 1).
         """
         self.env = env
         self.change = change
@@ -17,40 +29,52 @@ class SpeedChanger:
         self.offset = (1/(self.env.unwrapped.config['policy_frequency']))/2
 
     def get_current_speed(self):
-        """Get the current speed of the vehicle."""
-        current_speed = self.env.unwrapped.vehicle.speed
-        return current_speed
+        """Returns the current speed of the vehicle."""
+        return self.env.unwrapped.vehicle.speed
 
     def step(self):
-        """Take a step in the environment."""
+        """
+        Executes a step in the environment towards adjusting the vehicle's speed.
+
+        Returns:
+            The result of the environment step (observation, reward, done, info).
+        """
         self.step_count += 1
-        # print("Step count:", self.step_count)
-        return self.env.step(self.choose_action(self.get_current_speed(), self.desired_speed))
+        return self.env.step(self.choose_action())
 
     def done(self):
-        """Check if the desired speed is reached."""
-        acceleration = self.env.unwrapped.vehicle.action['acceleration']
+        """
+        Checks if the target speed has been reached within a specified margin.
+
+        Returns:
+            bool: True if the speed adjustment is completed, False otherwise.
+        """
 
         done = (self.desired_speed - self.offset < self.get_current_speed() <= self.desired_speed)
         if done:
+            # Reset acceleration to 0 once the target speed is reached
             self.env.unwrapped.vehicle.action['acceleration'] = 0
-            # print("Done: Reached desired speed")
         return done
 
-    def choose_action(self, current_speed, desired_speed):
-        """Choose the low-level action for changing speed."""
+    def choose_action(self):
+        """
+        Determines the acceleration action required to adjust the speed towards the desired target.
+        Low-level action.
+
+        Returns:
+            list: The action [acceleration, steering] to be taken.
+        """
+        current_speed = self.get_current_speed()
+
         steering = self.env.unwrapped.vehicle.action['steering']
         acceleration = self.env.unwrapped.vehicle.action['acceleration']
 
-        # print(f"Initial - steering: {steering} & acceleration: {acceleration}")
+        # Decide on acceleration based on the current vs. desired speed
+        if current_speed < self.desired_speed:
+            acceleration = 0.1  # Accelerate
+        elif current_speed > self.desired_speed:
+            acceleration = -0.1  # Decelerate
+        else:
+            acceleration = 0  # Maintain current speed
 
-        if current_speed < desired_speed:
-            acceleration = 0.1
-        elif current_speed > desired_speed:
-            acceleration = -0.1
-        elif current_speed == desired_speed:
-            acceleration = 0
-
-        # print(f"Acceleration: {acceleration}, Steering: {steering}, "
-        #     f"Current speed: {current_speed}, Desired speed: {desired_speed}")
         return [acceleration, steering]

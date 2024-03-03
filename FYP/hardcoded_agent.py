@@ -9,31 +9,30 @@ from highway_env.vehicle.behavior import IDMVehicle
 
 class HardcodedAgent:
     """
-    An agent that controls a vehicle in a highway environment based on hardcoded action selection.
+    A baseline agent that navigates a vehicle through a highway environment using hardcoded logic.
+
+    The agent determines actions (e.g., lane changes, acceleration) based on the current state of the environment,
+    specifically focusing on the position and velocity of surrounding vehicles. This agent is useful for establishing
+    a performance of the actions.
+    Note: The accuracy could be improved by adding more scenarios and quicker actions.
 
     Attributes:
-        env (CustomWrapper): The custom-wrapped highway environment.
-        RIGHT_MOST_LANE (int): The index of the rightmost lane.
-        LEFT_MOST_LANE (int): The index of the leftmost lane.
-        HIGHEST_AWARDED_SPEED (float): The highest speed for rewarding the agent.
-        TIME_TO_CHANGE_LANE (int): Time considered to change lane.
-        CONTROLLED_VEHICLE_INDEX (int): Index of the controlled vehicle.
-
-    Methods:
-        run():
-            Run the agent in the highway environment.
+        env (gym.Env): The environment the agent operates in, wrapped by a custom wrapper to modify its behavior.
+        RIGHT_MOST_LANE (int): The index of the rightmost lane in the environment.
+        LEFT_MOST_LANE (int): The index of the leftmost lane, typically 0.
+        HIGHEST_AWARDED_SPEED (float): The target speed the agent tries to maintain or reach.
+        TIME_TO_CHANGE_LANE (int): The time threshold considered safe for lane changes.
+        CONTROLLED_VEHICLE_INDEX (int): The index of the vehicle controlled by the agent within the environment.
     """
 
     def __init__(self):
         """
-        Initialize the Agent.
-
-        This method sets up the highway environment, custom wrapper, and defines parameters.
+        Initializes the agent by setting up the environment and defining key operational parameters.
         """
         self.env = ConfigEnv().make_configured_env(render_mode="human")
         self.env = CustomWrapper(self.env)
 
-        # Environment parameters
+        # Define operational parameters based on environment configuration
         self.RIGHT_MOST_LANE = self.env.unwrapped.config['lanes_count'] - 1
         self.LEFT_MOST_LANE = 0
         self.HIGHEST_AWARDED_SPEED = self.env.unwrapped.config['reward_speed_range'][1]
@@ -84,7 +83,6 @@ class HardcodedAgent:
                 and AbstractLane.DEFAULT_WIDTH / 2 >= vehicle[2] >= -AbstractLane.DEFAULT_WIDTH / 2
                 and vehicle[0] == 1
                 for i, vehicle in enumerate(vehicle_data[1:]))
-        # print(f"Is there a vehicle in front of the car in distance: {IDMVehicle.DISTANCE_WANTED}?: {vehicle_in_front}")
 
         # Check if vehicles on left
         vehicle_on_left = any(
@@ -92,7 +90,6 @@ class HardcodedAgent:
                 and -IDMVehicle.DISTANCE_WANTED <= vehicle[1] + vehicle[3] * self.TIME_TO_CHANGE_LANE <= IDMVehicle.DISTANCE_WANTED
                 and vehicle[0] == 1
                 for i, vehicle in enumerate(vehicle_data[1:]))
-        # print(f"Is there a vehicle on the left?: {vehicle_on_left}")
 
         # Check if vehicles on right
         vehicle_on_right = any(
@@ -100,32 +97,22 @@ class HardcodedAgent:
                 and -IDMVehicle.DISTANCE_WANTED <= vehicle[1] + vehicle[3] * self.TIME_TO_CHANGE_LANE <= IDMVehicle.DISTANCE_WANTED
                 and vehicle[0] == 1
                 for i, vehicle in enumerate(vehicle_data[1:]))
-        # print(f"Is there a vehicle on the right?: {vehicle_on_right}")
 
-        # If vehicle not at rightmost lane then change to right lane
+        # Logic for selecting actions based on the assessment of surroundings
         if self.env.vehicle.lane_index[2] < self.RIGHT_MOST_LANE and not vehicle_on_right:
-            action = 2
-            # print("Change to right lane")
-
-        # If vehicle not between 25-30 and not higher than 30, accelerate
+            action = 2  # Change to the right lane
         elif (not self.HIGHEST_AWARDED_SPEED - 5 <= self.env.vehicle.speed
               and not self.env.vehicle.speed > self.HIGHEST_AWARDED_SPEED and not vehicle_in_front):
-            action = 4
-            # print("Speed up")
-
+            action = 4  # Accelerate
         elif vehicle_in_front:
-            # print("Vehicle in front")
             if not vehicle_on_right and self.env.vehicle.lane_index[2] != self.RIGHT_MOST_LANE:
-                action = 2
-                # print("Right lane empty, go to right lane")
+                action = 2   # Move to the right lane if safe
             elif not vehicle_on_left and self.env.vehicle.lane_index[2] != self.LEFT_MOST_LANE:
-                action = 1
-                # print("Left lane empty, go to left lane")
+                action = 1  # Move to the left lane if safe
             else:
-                action = 3  # Could have improvements
-                # print("Slow down")
+                action = 3  # # Otherwise, slow down (Could have improvements)
         else:
-            action = 0
+            action = 0  # Go forward
 
         return action
 

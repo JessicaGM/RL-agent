@@ -6,41 +6,59 @@ from highway_env.road.lane import AbstractLane
 
 
 class LaneChanger:
-    """Class representing behavior for changing lanes."""
+    """
+    A behavior model for changing lanes or moving forward a specified distance within a highway environment.
 
-    def __init__(self, env, change, distance):
+    Attributes:
+        env (Environment): The simulation environment containing the vehicle.
+        change (int): Direction and magnitude of lane change (-1 for left, 1 for right, 0 for no lane change).
+        destination_lane (int): The target lane after the change.
+        step_count (int): Number of steps taken since the beginning of the action.
+        vehicle_posX (float): The initial x-position of the vehicle when the action started.
+        target_distance (float): The target distance to move forward if no lane change is specified.
+    """
+
+    def __init__(self, env, change, distance=None):
         """
-        Initialize the LaneChanger.
+        Initializes a LaneChanger instance.
 
         Args:
-            env (HighwayEnv): The environment.
-            change (int): The lane change direction (-1 for left, 1 for right).
+            env: The environment in which the vehicle operates.
+            change (int): Specifies the direction and magnitude of the lane change (-1, 0, 1).
+            distance (float, optional): The distance to move forward if no lane change is required.
         """
         self.env = env
         self.change = change
         self.destination_lane = self.get_current_lane() + self.change
         self.step_count = 0
         self.vehicle_posX = self.get_current_posX()
-        self.target_distance = distance
+        self.target_distance = distance or 0  # Default to 0 if no distance is provided
 
     def get_current_lane(self):
-        """Get the current lane of the vehicle."""
-        current_lane = self.env.unwrapped.vehicle.lane_index[2]
-        return current_lane
+        """Returns the current lane index of the vehicle."""
+        return self.env.unwrapped.vehicle.lane_index[2]
 
     def get_current_posX(self):
-        """Get the current position x of the vehicle."""
-        current_posX = self.env.unwrapped.vehicle.position[0]
-        return current_posX
+        """Returns the current x-position of the vehicle."""
+        return self.env.unwrapped.vehicle.position[0]
 
     def step(self):
-        """Take a step in the environment."""
+        """
+        Executes a step in the environment towards completing the lane change or moving forward.
+
+        Returns:
+            The result of the environment step (observation, reward, done, info).
+        """
         self.step_count += 1
-        # print("Step count:", self.step_count)
-        return self.env.step(self.choose_action(self.get_current_lane(), self.destination_lane))
+        return self.env.step(self.choose_action())
 
     def done(self):
-        """Check if the lane change is completed."""
+        """
+        Checks if the lane change or forward movement is completed.
+
+        Returns:
+            bool: True if the action is completed, False otherwise.
+        """
         done = (self.destination_lane == self.get_current_lane() and 0.5 > self.env.unwrapped.vehicle.lane_offset[1] > -0.5)
         if done:
             if self.change == 0:
@@ -48,36 +66,35 @@ class LaneChanger:
 
                 if distance_covered >= self.target_distance:
                     self._reset_after_change()
-                    # print(f"Done: Forward travel completed. Distance covered: {distance_covered}")
                     return True
                 else:
-                    # print(f"Continue forward: Distance covered: {distance_covered}")
                     return False
             else:
                 self._reset_after_change()
-                # print("Done: Desired lane reached.")
 
         return done
 
     def _reset_after_change(self):
-        """Reset after completing lane change."""
+        """Resets the vehicle's heading and steering after completing a lane change."""
         self.env.unwrapped.vehicle.heading = 0  # straighten
         self.env.unwrapped.vehicle.action['steering'] = 0.0
-        # print(f"Done: {done}, Current lane: {self.get_current_lane()},
-        # Destination lane: {self.destination_lane}, Vehicle pos: {self.env.vehicle.position},
-        # Steering: {self.env.vehicle.action['steering']}")
 
-    def choose_action(self, current_lane, destination_lane):
-        """Choose the low-level action for the lane change."""
+    def choose_action(self):
+        """
+        Determines the steering action required to change lanes or continue moving forward.
+        Low-level action.
+
+        Returns:
+            list: The action [acceleration, steering] to be taken.
+        """
         steering = self.env.unwrapped.vehicle.action['steering']
         acceleration = self.env.unwrapped.vehicle.action['acceleration']
 
-        lane_difference = destination_lane - current_lane
+        current_lane = self.get_current_lane()
+        lane_difference = self.destination_lane - current_lane
         if lane_difference > 0 or lane_difference < 0:
-            steering = np.sign(destination_lane - current_lane) * 0.5 / self.env.unwrapped.vehicle.speed
+            steering = np.sign(self.destination_lane - current_lane) * 0.5 / self.env.unwrapped.vehicle.speed
         elif lane_difference == 0:
-            steering = 0
-
-        # print(f"Lanes to destination: {destination_lane - current_lane}, Acceleration: {acceleration}, Steering: {steering}")
+            steering = 0     # Straighten up if in the target lane or moving forward
 
         return [acceleration, steering]
