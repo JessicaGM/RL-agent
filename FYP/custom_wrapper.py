@@ -84,7 +84,7 @@ class CustomWrapper(gym.ActionWrapper):
             # print("Cumulative reward:", cumulative_reward, "info:", info)
             self.LL_step_count += changer.step_count
             # print("Cumulative step count:", self.LL_step_count)
-            return obs, reward, terminated, truncated, info
+            return obs, cumulative_reward, terminated, truncated, info
 
         # Adjust speed
         if 3 <= action <= 5:
@@ -108,4 +108,4 @@ class CustomWrapper(gym.ActionWrapper):
             # print("Cumulative reward:", cumulative_reward, "info:", info)
             self.LL_step_count += changer.step_count
             # print("Cumulative step count:", self.LL_step_count)
-            return obs, reward, terminated, truncated, info
+            return obs, cumulative_reward, terminated, truncated, info
