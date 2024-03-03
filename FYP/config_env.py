@@ -1,17 +1,17 @@
 import gymnasium as gym
 
+from FYP.custom_reward import CustomReward
+
 
 class ConfigEnv:
     """
-    A utility class for configuring and creating a customized highway environment in Gymnasium.
-
-    This class abstracts the setup process for the highway simulation, allowing for easy adjustments
-    to environmental parameters such as the observation and action spaces, simulation dynamics, rewards,
-    and rendering settings.
+    Facilitates setup and configuration of a Gymnasium highway simulation environment. It abstracts configuration
+    details such as observation and action spaces, simulation dynamics, and reward settings. This class simplifies
+    adjustments and experiments with the environment for training and evaluation purposes.
 
     Attributes:
-        id (str): Identifier for the highway environment to be used with Gymnasium's make function.
-        config (dict): A dictionary containing all configuration settings for the highway environment.
+        id (str): Identifier for the Gymnasium highway environment.
+        config (dict): Environment configuration parameters including simulation settings and reward structures.
     """
 
     def __init__(self):
@@ -41,12 +41,10 @@ class ConfigEnv:
             "ego_spacing": 2,
             "vehicles_density": 1,
             "collision_reward": -1,  # The reward received when colliding with a vehicle.
-            "right_lane_reward": 0.1,  # The reward received when driving on the right-most lanes,
-                                       # linearly mapped to zero for other lanes.
-            "high_speed_reward": 0.4,  # The reward received when driving at full speed,
-                                       # linearly mapped to zero for lower speeds
-                                       # according to config["reward_speed_range"].
-            "lane_change_reward": 0,  # The reward received at each lane change action.
+            "right_lane_reward": 1,  # The reward received when driving on the right-most lanes, linearly mapped to
+                                       # zero for other lanes.
+            "high_speed_reward": 1,  # The reward received when driving at full speed, linearly mapped to zero for
+                                       # lower speeds according to config["reward_speed_range"].
             "reward_speed_range": [20, 30],
             "normalize_reward": True,
             "offroad_terminal": True,  # Terminate episode when offroad
@@ -58,15 +56,20 @@ class ConfigEnv:
 
     def make_configured_env(self, render_mode=None):
         """
-        Instantiates and returns a configured highway environment based on the specified settings.
+        Instantiates and initializes a highway environment with predefined configuration settings, applying a custom
+        reward structure. Optionally sets a rendering mode for visual output.
 
         Args:
-            render_mode (str, optional): The render mode to be used by the environment. Defaults to None.
+            render_mode (str, optional): Render mode ('human', 'rgb_array', or None) for visual output.
+                    Defaults to None, in which case the environment will not render visuals unless explicitly
+                    requested later.
 
         Returns:
-            gym.Env: The configured and initialized highway environment.
+            gym.Env: Configured Gymnasium environment wrapped with a custom reward wrapper, ready for simulation or
+                    training.
         """
         env = gym.make(self.id, render_mode=render_mode)
         env.configure(self.config)
         env.reset()
+        env = CustomReward(env)
         return env
