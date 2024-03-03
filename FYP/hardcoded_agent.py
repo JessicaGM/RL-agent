@@ -29,8 +29,7 @@ class HardcodedAgent:
         """
         Initializes the agent by setting up the environment and defining key operational parameters.
         """
-        self.env = ConfigEnv().make_configured_env(render_mode="human")
-        self.env = CustomActions(self.env)
+        self.env = ConfigEnv().make_configured_env(action_type="high-level", render_mode="human")
 
         # Define operational parameters based on environment configuration
         self.RIGHT_MOST_LANE = self.env.unwrapped.config['lanes_count'] - 1

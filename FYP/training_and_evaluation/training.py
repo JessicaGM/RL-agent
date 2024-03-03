@@ -77,8 +77,7 @@ if __name__ == "__main__":
     model_path = log_path + "model.zip"
 
     # Environment setup
-    env = ConfigEnv().make_configured_env()
-    env = CustomActions(env) if env_action_type == "high-level" else env
+    env = ConfigEnv().make_configured_env(action_type=env_action_type)
 
     # Train or continue training the model
     model = train_ppo(env, env_action_type, log_path, model_path, mode=mode)

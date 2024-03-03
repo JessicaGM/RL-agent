@@ -1,5 +1,6 @@
 import gymnasium as gym
 
+from FYP.custom_actions import CustomActions
 from FYP.custom_reward import CustomReward
 
 
@@ -54,22 +55,27 @@ class ConfigEnv:
             "order": "sorted"
         }
 
-    def make_configured_env(self, render_mode=None):
+    def make_configured_env(self, action_type="continuous", render_mode=None):
         """
-        Instantiates and initializes a highway environment with predefined configuration settings, applying a custom
+        Instantiates and initializes a highway environment with specified configuration and action type, applying a custom
         reward structure. Optionally sets a rendering mode for visual output.
 
         Args:
+            action_type (str, optional): Specifies the type of actions to be used in the environment. "continuous" for
+                    default continuous actions, "high-level" for custom high-level actions. Defaults to "continuous".
             render_mode (str, optional): Render mode ('human', 'rgb_array', or None) for visual output.
                     Defaults to None, in which case the environment will not render visuals unless explicitly
                     requested later.
 
         Returns:
-            gym.Env: Configured Gymnasium environment wrapped with a custom reward wrapper, ready for simulation or
-                    training.
+            gym.Env: Configured Gymnasium environment wrapped with a custom reward (and possibly action) wrapper,
+                    ready for simulation or training.
+
         """
         env = gym.make(self.id, render_mode=render_mode)
         env.configure(self.config)
         env.reset()
         env = CustomReward(env)
+        if action_type == "high-level":
+            env = CustomActions(env)
         return env
