@@ -2,7 +2,6 @@ import time
 import gymnasium as gym
 
 from FYP.config_env import ConfigEnv
-from custom_actions import CustomActions
 from highway_env.road.lane import AbstractLane
 from highway_env.vehicle.behavior import IDMVehicle
 
