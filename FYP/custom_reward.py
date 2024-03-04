@@ -110,7 +110,9 @@ class CustomReward(gymnasium.RewardWrapper):
         SupportsFloat: The final computed reward.
         """
         config = self.env.unwrapped.config
-        reward = (self.collision_reward + self.right_lane_reward + self.high_speed_reward)
+        reward = (config["collision_reward"] * self.collision_reward
+                  + config["right_lane_reward"] * self.right_lane_reward
+                  + config["high_speed_reward"] * self.high_speed_reward)
 
         # Normalize the reward if specified in the configuration
         if config.get("normalize_reward", False):
