@@ -17,8 +17,8 @@ class HardcodedAgent:
 
     Attributes:
         env (gym.Env): The environment the agent operates in, wrapped by a custom wrapper to modify its behavior.
-        RIGHT_MOST_LANE (int): The index of the rightmost lane in the environment.
-        LEFT_MOST_LANE (int): The index of the leftmost lane, typically 0.
+        RIGHTMOST_LANE (int): The index of the rightmost lane in the environment.
+        LEFTMOST_LANE (int): The index of the leftmost lane, typically 0.
         HIGHEST_AWARDED_SPEED (float): The target speed the agent tries to maintain or reach.
         TIME_TO_CHANGE_LANE (int): The time threshold considered safe for lane changes.
         CONTROLLED_VEHICLE_INDEX (int): The index of the vehicle controlled by the agent within the environment.
@@ -31,8 +31,8 @@ class HardcodedAgent:
         self.env = ConfigEnv().make_configured_env(action_type="high-level", render_mode="human")
 
         # Define operational parameters based on environment configuration
-        self.RIGHT_MOST_LANE = self.env.unwrapped.config['lanes_count'] - 1
-        self.LEFT_MOST_LANE = 0
+        self.RIGHTMOST_LANE = self.env.unwrapped.config['lanes_count'] - 1
+        self.LEFTMOST_LANE = 0
         self.HIGHEST_AWARDED_SPEED = self.env.unwrapped.config['reward_speed_range'][1]
         self.TIME_TO_CHANGE_LANE = 2
         self.CONTROLLED_VEHICLE_INDEX = 0
@@ -97,15 +97,15 @@ class HardcodedAgent:
                 for i, vehicle in enumerate(vehicle_data[1:]))
 
         # Logic for selecting actions based on the assessment of surroundings
-        if self.env.vehicle.lane_index[2] < self.RIGHT_MOST_LANE and not vehicle_on_right:
+        if self.env.vehicle.lane_index[2] < self.RIGHTMOST_LANE and not vehicle_on_right:
             action = 2  # Change to the right lane
         elif (not self.HIGHEST_AWARDED_SPEED - 5 <= self.env.vehicle.speed
               and not self.env.vehicle.speed > self.HIGHEST_AWARDED_SPEED and not vehicle_in_front):
             action = 4  # Accelerate
         elif vehicle_in_front:
-            if not vehicle_on_right and self.env.vehicle.lane_index[2] != self.RIGHT_MOST_LANE:
+            if not vehicle_on_right and self.env.vehicle.lane_index[2] != self.RIGHTMOST_LANE:
                 action = 2   # Move to the right lane if safe
-            elif not vehicle_on_left and self.env.vehicle.lane_index[2] != self.LEFT_MOST_LANE:
+            elif not vehicle_on_left and self.env.vehicle.lane_index[2] != self.LEFTMOST_LANE:
                 action = 1  # Move to the left lane if safe
             else:
                 action = 3  # # Otherwise, slow down (Could have improvements)
