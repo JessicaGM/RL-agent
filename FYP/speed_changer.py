@@ -1,5 +1,3 @@
-from highway_env.vehicle.kinematics import Vehicle
-
 
 class SpeedChanger:
     """
@@ -49,11 +47,8 @@ class SpeedChanger:
         Returns:
             bool: True if the speed adjustment is completed, False otherwise.
         """
-        # Speed within range
-        if Vehicle.MIN_SPEED <= self.desired_speed <= Vehicle.MAX_SPEED:
-            done = (self.desired_speed - self.offset < self.get_current_speed() <= self.desired_speed)
-        else:
-            done = True
+        done = (self.desired_speed - self.offset < self.get_current_speed() <= self.desired_speed)
+
         if done:
             # Reset acceleration to 0 once the target speed is reached
             self.env.unwrapped.vehicle.action['acceleration'] = 0
@@ -72,16 +67,12 @@ class SpeedChanger:
         steering = self.env.unwrapped.vehicle.action['steering']
         acceleration = self.env.unwrapped.vehicle.action['acceleration']
 
-        # Speed within range
-        if Vehicle.MIN_SPEED <= self.desired_speed <= Vehicle.MAX_SPEED:
-            # Decide on acceleration based on the current vs. desired speed
-            if current_speed < self.desired_speed:
-                acceleration = 0.1  # Accelerate
-            elif current_speed > self.desired_speed:
-                acceleration = -0.1  # Decelerate
-            else:
-                acceleration = 0  # Maintain current speed
+        # Decide on acceleration based on the current vs. desired speed
+        if current_speed < self.desired_speed:
+            acceleration = 0.1  # Accelerate
+        elif current_speed > self.desired_speed:
+            acceleration = -0.1  # Decelerate
         else:
-            acceleration = 0  # Cannot accelerate more
+            acceleration = 0  # Maintain current speed
 
         return [acceleration, steering]

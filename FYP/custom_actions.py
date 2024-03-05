@@ -3,6 +3,7 @@ from gymnasium import spaces
 
 from FYP.lane_changer import LaneChanger
 from FYP.speed_changer import SpeedChanger
+from highway_env.vehicle.kinematics import Vehicle
 
 
 class CustomActions(gym.ActionWrapper):
@@ -18,6 +19,8 @@ class CustomActions(gym.ActionWrapper):
         HL_step_count (int): Counter for high-level steps taken in the environment.
         LL_step_count (int): Counter for low-level steps taken in the environment.
         action_space (spaces.Discrete): The action space of the environment after modification.
+        leftmost_lane (int): Index of the leftmost lane.
+        rightmost_lane (int): Index of the rightmost lane.
 
     Methods:
         reset(**kwargs): Resets the environment and counters.
@@ -34,7 +37,9 @@ class CustomActions(gym.ActionWrapper):
         super().__init__(env)
         self.HL_step_count = 0
         self.LL_step_count = 0
-        self.action_space = spaces.Discrete(6)  # Define new action space with 6 discrete actions
+        self.action_space = spaces.Discrete(5)  # Define new action space with 6 discrete actions
+        self.leftmost_lane = 0
+        self.rightmost_lane = self.env.unwrapped.config['lanes_count'] - 1
 
     def reset(self, **kwargs):
         """
@@ -64,7 +69,6 @@ class CustomActions(gym.ActionWrapper):
                 - 2: Change to the right lane.
                 - 3: Slow down by around 1m/s.
                 - 4: Speed up by around 1m/s.
-                - 5: Maintain the current speed.
 
         Returns:
             obs: The observation after taking the action.
@@ -91,20 +95,29 @@ class CustomActions(gym.ActionWrapper):
             if action == 2:
                 change = 1
 
-            changer = LaneChanger(self.env, change, distance)
+            # Ensure that the vehicle is not on the rightmost or leftmost lane before executing the lane-changing action
+            destination_lane = self.env.unwrapped.vehicle.lane_index[2] + change
+            if self.leftmost_lane <= destination_lane <= self.rightmost_lane:
+                changer = LaneChanger(self.env, change, distance)
+            else:
+                # If the desired lane exceeds the range of permissible lanes, stay on the current lane
+                changer = LaneChanger(self.env, 0)
 
-        elif 3 <= action <= 5:
-            # Gradually slow down
+        elif 3 <= action <= 4:
+            # Slow down by 1
             if action == 3:
-                change = -1  # change speed by -1
-            # Gradually speed up
+                change = -1
+            # Speed up by 1
             if action == 4:
-                change = 1  # change speed by 1
-            # Maintain speed
-            if action == 5:
-                change = 0  # no change
+                change = 1
 
-            changer = SpeedChanger(self.env, change)
+            # Ensure that desired speed stays within the limit
+            current_speed = self.env.unwrapped.vehicle.speed
+            if Vehicle.MIN_SPEED <= current_speed + change <= Vehicle.MAX_SPEED:
+                changer = SpeedChanger(self.env, change)
+            else:
+                # If desired speed exceeds the limit, just maintain current speed
+                changer = SpeedChanger(self.env, 0)
 
         obs, reward, terminated, truncated, info = changer.step()
         cumulative_reward = reward
