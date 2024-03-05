@@ -1,3 +1,5 @@
+from highway_env.vehicle.kinematics import Vehicle
+
 
 class SpeedChanger:
     """
@@ -7,8 +9,6 @@ class SpeedChanger:
     taking into account the environment's policy frequency to determine the granularity of speed adjustments.
 
     Attributes:
-        env (Environment): The simulation environment containing the vehicle.
-        change (int): Indicates the direction and magnitude of the speed change (-1 for deceleration, 1 for acceleration).
         desired_speed (float): The target speed the vehicle aims to reach.
         step_count (int): Number of steps taken since the beginning of the speed adjustment.
         offset (float): A small margin around the desired speed to account for the granularity of speed adjustments.
@@ -20,7 +20,7 @@ class SpeedChanger:
 
         Args:
             env: The environment in which the vehicle operates.
-            change (int): Specifies the direction and magnitude of the speed change (-1, 1).
+            change (int): Specifies the direction and magnitude of the speed change.
         """
         self.env = env
         self.change = change
@@ -49,8 +49,11 @@ class SpeedChanger:
         Returns:
             bool: True if the speed adjustment is completed, False otherwise.
         """
-
-        done = (self.desired_speed - self.offset < self.get_current_speed() <= self.desired_speed)
+        # Speed within range
+        if Vehicle.MIN_SPEED <= self.desired_speed <= Vehicle.MAX_SPEED:
+            done = (self.desired_speed - self.offset < self.get_current_speed() <= self.desired_speed)
+        else:
+            done = True
         if done:
             # Reset acceleration to 0 once the target speed is reached
             self.env.unwrapped.vehicle.action['acceleration'] = 0
@@ -69,12 +72,16 @@ class SpeedChanger:
         steering = self.env.unwrapped.vehicle.action['steering']
         acceleration = self.env.unwrapped.vehicle.action['acceleration']
 
-        # Decide on acceleration based on the current vs. desired speed
-        if current_speed < self.desired_speed:
-            acceleration = 0.1  # Accelerate
-        elif current_speed > self.desired_speed:
-            acceleration = -0.1  # Decelerate
+        # Speed within range
+        if Vehicle.MIN_SPEED <= self.desired_speed <= Vehicle.MAX_SPEED:
+            # Decide on acceleration based on the current vs. desired speed
+            if current_speed < self.desired_speed:
+                acceleration = 0.1  # Accelerate
+            elif current_speed > self.desired_speed:
+                acceleration = -0.1  # Decelerate
+            else:
+                acceleration = 0  # Maintain current speed
         else:
-            acceleration = 0  # Maintain current speed
+            acceleration = 0  # Cannot accelerate more
 
         return [acceleration, steering]
