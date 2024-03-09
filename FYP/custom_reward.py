@@ -20,10 +20,9 @@ class CustomReward(gymnasium.RewardWrapper):
         env (gym.Env): The environment to wrap.
         """
         super().__init__(env)
-        # Initialize reward components to None; they will be updated during each step.
-        self.collision_reward = None
-        self.right_lane_reward = None
-        self.high_speed_reward = None
+        self.right_lane_reward = 0
+        self.high_speed_reward = 0
+        self.lane_position_tolerance = (1 / (self.env.unwrapped.config['policy_frequency'])) * 1.5
 
     def reward(self, reward: SupportsFloat) -> SupportsFloat:
         """
@@ -35,8 +34,12 @@ class CustomReward(gymnasium.RewardWrapper):
         Returns:
         SupportsFloat: The modified reward.
         """
-        self._calculate_reward_components()
-        reward = self._compute_final_reward()
+        vehicle = self.env.unwrapped.vehicle
+        road = self.env.unwrapped.road
+        config = self.env.unwrapped.config
+
+        self._calculate_reward_components(vehicle, road, config)
+        reward = self._compute_final_reward(vehicle, config)
 
         return reward
 
@@ -55,23 +58,18 @@ class CustomReward(gymnasium.RewardWrapper):
 
         # Update the 'info' dictionary with detailed reward components
         info['rewards'] = {
-            'collision_reward': self.collision_reward,
             'right_lane_reward': self.right_lane_reward,
             'high_speed_reward': self.high_speed_reward
         }
 
+        info['on_road'] = self.env.unwrapped.vehicle.on_road
+
         return obs, reward, done, truncated, info
 
-    def _calculate_reward_components(self):
+    def _calculate_reward_components(self, vehicle, road, config):
         """
         Calculates individual components of the reward based on the vehicle's state.
         """
-        vehicle = self.env.unwrapped.vehicle
-        road = self.env.unwrapped.road
-        config = self.env.unwrapped.config
-
-        self.collision_reward = 0 if not vehicle.crashed else float(config["collision_reward"])
-        self.on_road_reward = float(vehicle.on_road)
 
         self._calculate_right_lane_reward(vehicle, road)
         self._calculate_high_speed_reward(vehicle, config)
@@ -84,11 +82,12 @@ class CustomReward(gymnasium.RewardWrapper):
         vehicle: The vehicle for which the reward is being calculated.
         road: The road on which the vehicle is located.
         """
-        self.right_lane_reward = 0  # Default to 0
-        if 0.1 > vehicle.lane_offset[1] > -0.1:
-            lane_position = vehicle.lane_index[2]
-            neighbours = road.network.all_side_lanes(vehicle.lane_index)
+        lane_position = vehicle.lane_index[2]
+        neighbours = road.network.all_side_lanes(vehicle.lane_index)
+        if self.lane_position_tolerance > vehicle.lane_offset[1] > - self.lane_position_tolerance:
             self.right_lane_reward = lane_position / max(len(neighbours) - 1, 1)
+        else:
+            self.right_lane_reward = 0
 
     def _calculate_high_speed_reward(self, vehicle, config):
         """
@@ -100,25 +99,26 @@ class CustomReward(gymnasium.RewardWrapper):
         """
         forward_speed = vehicle.speed * np.cos(vehicle.heading)
         scaled_speed = utils.lmap(forward_speed, config["reward_speed_range"], [0, 1])
-        self.high_speed_reward = np.clip(scaled_speed, 0, 1)
+        if scaled_speed > 1:
+            self.high_speed_reward = 0
+        else:
+            self.high_speed_reward = np.clip(scaled_speed, 0, 1)
 
-    def _compute_final_reward(self) -> SupportsFloat:
+    def _compute_final_reward(self, vehicle, config) -> SupportsFloat:
         """
         Computes the final reward by summing up the individual reward components.
 
         Returns:
         SupportsFloat: The final computed reward.
         """
-        config = self.env.unwrapped.config
-        reward = (config["collision_reward"] * self.collision_reward
-                  + config["right_lane_reward"] * self.right_lane_reward
+        reward = (config["right_lane_reward"] * self.right_lane_reward
                   + config["high_speed_reward"] * self.high_speed_reward)
 
         # Normalize the reward if specified in the configuration
         if config.get("normalize_reward", False):
             reward = utils.lmap(reward,
-                                [config["collision_reward"], config["high_speed_reward"] + config["right_lane_reward"]],
+                                [0, config["high_speed_reward"] + config["right_lane_reward"]],
                                 [0, 1])
-        reward *= self.on_road_reward
-
+        reward *= float(vehicle.on_road)
+        reward *= float(not vehicle.crashed)
         return reward
