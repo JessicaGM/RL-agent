@@ -74,8 +74,7 @@ class CustomActions(gym.ActionWrapper):
             1: self.change_to_left_lane,
             2: self.change_to_right_lane,
             3: self.slow_down,
-            4: self.speed_up,
-            5: self.maintain_lane
+            4: self.speed_up
         }
         return subpolicies
 
@@ -123,15 +122,6 @@ class CustomActions(gym.ActionWrapper):
             SpeedChanger: Instance of SpeedChanger - subpolicy set for speeding up.
         """
         return SpeedChanger(self.env, 1)
-
-    def maintain_lane(self):
-        """
-        Perform an action to maintain the current lane.
-
-        Returns:
-            LaneChanger: Instance of LaneChanger - subpolicy for maintaining the current lane.
-        """
-        return LaneChanger(self.env, 0)
 
     def lane_change_possible(self, change):
         """
