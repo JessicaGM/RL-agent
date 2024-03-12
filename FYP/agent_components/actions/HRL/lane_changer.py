@@ -103,14 +103,10 @@ class LaneChanger:
 
     def choose_action(self):
         """
-        Determines the appropriate steering and acceleration actions to achieve the desired lane change or forward
-        movement.
-
-        This method calculates the necessary steering adjustment based on the current and destination lanes,
-        and the vehicle's speed to facilitate smooth lane changes or maintain straight-line movement.
+        Determines the low-level action to achieve the desired lane change or forward movement.
 
         Returns:
-            list: An action list containing the acceleration and steering values to be applied in the environment step.
+           list: The action [acceleration, steering] to be taken.
         """
         steering = self.env.unwrapped.vehicle.action['steering']
         acceleration = self.env.unwrapped.vehicle.action['acceleration']

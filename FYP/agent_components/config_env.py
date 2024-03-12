@@ -1,7 +1,8 @@
 import gymnasium as gym
 
-from FYP.custom_actions import CustomActions
-from FYP.custom_reward import CustomReward
+from FYP.agent_components.custom_reward import CustomReward
+from FYP.agent_components.actions.HRL.custom_actions import CustomActions
+from FYP.agent_components.actions.continuous.continuous_actions import ContinuousActions
 
 
 class ConfigEnv:
@@ -21,12 +22,14 @@ class ConfigEnv:
         """
         self.id = 'highway-v0'
         self.config = {
+            # do not change:
             "observation": {
                 "type": "Kinematics",
                 "normalize": False,
                 "features": ["presence", "x", "y", "vx", "vy", "heading", "cos_h",
                              "sin_h", "cos_d", "sin_d", "long_off", "lat_off", "ang_off"],
             },
+            # do not change:
             "action": {
                 "type": "ContinuousAction",
                 "longitudinal": True,
@@ -55,27 +58,34 @@ class ConfigEnv:
             "order": "sorted"
         }
 
-    def make_configured_env(self, action_type="continuous", render_mode=None):
+    def create(self, action_type="continuous", render_mode=None, custom_rewards="no"):
         """
         Instantiates and initializes a highway environment with specified configuration and action type, applying a custom
         reward structure. Optionally sets a rendering mode for visual output.
 
         Args:
-            action_type (str, optional): Specifies the type of actions to be used in the environment. "continuous" for
-                    default continuous actions, "high-level" for custom high-level actions. Defaults to "continuous".
-            render_mode (str, optional): Render mode ('human', 'rgb_array', or None) for visual output.
+            action_type (str, optional): Specifies the type of actions to be used in the environment. `continuous` for
+                    default continuous actions, `high-level` for custom high-level actions. Defaults to `continuous`.
+            render_mode (str, optional): Render mode (`human`, `rgb_array`, or None) for visual output.
                     Defaults to None, in which case the environment will not render visuals unless explicitly
                     requested later.
+            custom_rewards (str, optional): Specifies the type of rewards to be used in the environment. `no` for
+                    original rewards from the original gym environment, `yes` for custom rewards. Defaults to `no`.
 
         Returns:
-            gym.Env: Configured Gymnasium environment wrapped with a custom reward (and possibly action) wrapper,
+            gym.Env: Configured Gymnasium environment wrapped with a possibly custom reward and action wrapper,
                     ready for simulation or training.
 
         """
         env = gym.make(self.id, render_mode=render_mode)
-        env.configure(self.config)
+        env.unwrapped.configure(self.config)
         env.reset()
-        env = CustomReward(env)
+
+        if custom_rewards == "yes":
+            env = CustomReward(env)
+        env = ContinuousActions(env)
         if action_type == "high-level":
             env = CustomActions(env)
+        else:
+            env = ContinuousActions(env)
         return env

@@ -7,9 +7,11 @@ class SpeedChanger:
     taking into account the environment's policy frequency to determine the granularity of speed adjustments.
 
     Attributes:
+        env (Env): The wrapped environment in which the vehicle operates in.
+        change (int): Specifies the direction and magnitude of the speed change.
         desired_speed (float): The target speed the vehicle aims to reach.
         step_count (int): Number of steps taken since the beginning of the speed adjustment.
-        offset (float): A small margin around the desired speed to account for the granularity of speed adjustments.
+        speed_offset (float): A small margin around the desired speed to account for the granularity of speed adjustments.
     """
 
     def __init__(self, env, change):
@@ -17,14 +19,14 @@ class SpeedChanger:
         Initializes a SpeedChanger instance.
 
         Args:
-            env: The environment in which the vehicle operates.
-            change (int): Specifies the direction and magnitude of the speed change.
+            env (Env): The wrapped environment in which the vehicle operates in.
+            change (int): Specifies the magnitude of the speed change.
         """
         self.env = env
         self.change = change
         self.desired_speed = self.get_current_speed() + change
+        self.speed_offset = (1/(self.env.unwrapped.config['policy_frequency']))
         self.step_count = 0
-        self.offset = (1/(self.env.unwrapped.config['policy_frequency']))/2
 
     def get_current_speed(self):
         """Returns the current speed of the vehicle."""
@@ -47,7 +49,7 @@ class SpeedChanger:
         Returns:
             bool: True if the speed adjustment is completed, False otherwise.
         """
-        done = (self.desired_speed - self.offset < self.get_current_speed() <= self.desired_speed)
+        done = (self.desired_speed - self.speed_offset <= self.get_current_speed() <= self.desired_speed)
 
         if done:
             # Reset acceleration to 0 once the target speed is reached
@@ -56,8 +58,7 @@ class SpeedChanger:
 
     def choose_action(self):
         """
-        Determines the acceleration action required to adjust the speed towards the desired target.
-        Low-level action.
+        Determines the low-level action required to adjust the speed towards the desired target.
 
         Returns:
             list: The action [acceleration, steering] to be taken.
