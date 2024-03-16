@@ -19,7 +19,7 @@ class CustomActions(gym.ActionWrapper):
         timesteps_LL (int): Total counter for LL steps taken across all episodes, useful for training.
         episode_count (int): Counter for the number of episodes processed, useful for training info.
         subpolicies (dict): A mapping from discrete action IDs to their corresponding sub-policy methods.
-        action_space (gym.spaces.Space): The action space of the wrapped environment, overridden by the custom action space.
+        action_space (gym.spaces): The action space of the wrapped environment, overridden by the custom action space.
         left_most_lane (int): Index of the leftmost lane in the environment.
         right_most_lane (int): Index of the rightmost lane in the environment.
 
