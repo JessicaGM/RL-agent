@@ -110,7 +110,7 @@ class CustomActions(gym.ActionWrapper):
         Perform a speed change action to slow down by approximately 1 m/s.
 
         Returns:
-            SpeedChanger: Instance of SpeedChanger with parameters set for slowing down.
+            SpeedChanger: Instance of SpeedChanger - subpolicy for slowing down.
         """
         return SpeedChanger(self.env, -1)
 
@@ -119,7 +119,7 @@ class CustomActions(gym.ActionWrapper):
         Perform a speed change action to speed up by approximately 1 m/s.
 
         Returns:
-            SpeedChanger: Instance of SpeedChanger - subpolicy set for speeding up.
+            SpeedChanger: Instance of SpeedChanger - subpolicy for speeding up.
         """
         return SpeedChanger(self.env, 1)
 
