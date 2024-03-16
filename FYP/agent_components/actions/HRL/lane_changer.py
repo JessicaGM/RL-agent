@@ -89,10 +89,10 @@ class LaneChanger:
             distance_covered = self.get_current_posX() - self.vehicle_posX
             return distance_covered >= self.target_distance
 
-        self._reset_after_change() if done else None
+        self.reset_after_change() if done else None
         return done
 
-    def _reset_after_change(self):
+    def reset_after_change(self):
         """
         Resets the vehicle's heading and steering to default values after completing a lane change.
 
