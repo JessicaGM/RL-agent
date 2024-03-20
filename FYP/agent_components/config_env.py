@@ -83,7 +83,6 @@ class ConfigEnv:
 
         if custom_rewards == "yes":
             env = CustomReward(env)
-        env = ContinuousActions(env)
         if action_type == "high-level":
             env = CustomActions(env)
         else:
