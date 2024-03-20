@@ -71,8 +71,8 @@ class CustomReward(gymnasium.RewardWrapper):
         Calculates individual components of the reward based on the vehicle's state.
         """
 
-        self.calculate_right_lane_reward(vehicle, road)
-        self.calculate_high_speed_reward(vehicle, config)
+        self.calculate_lane_reward(vehicle, road)
+        self.calculate_speed_reward(vehicle, config)
 
     def calculate_lane_reward(self, vehicle, road):
         """
