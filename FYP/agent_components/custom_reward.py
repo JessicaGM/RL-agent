@@ -38,8 +38,8 @@ class CustomReward(gymnasium.RewardWrapper):
         road = self.env.unwrapped.road
         config = self.env.unwrapped.config
 
-        self._calculate_reward_components(vehicle, road, config)
-        reward = self._compute_final_reward(vehicle, config)
+        self.calculate_reward_components(vehicle, road, config)
+        reward = self.compute_final_reward(vehicle, config)
 
         return reward
 
@@ -66,15 +66,15 @@ class CustomReward(gymnasium.RewardWrapper):
 
         return obs, reward, done, truncated, info
 
-    def _calculate_reward_components(self, vehicle, road, config):
+    def calculate_reward_components(self, vehicle, road, config):
         """
         Calculates individual components of the reward based on the vehicle's state.
         """
 
-        self._calculate_right_lane_reward(vehicle, road)
-        self._calculate_high_speed_reward(vehicle, config)
+        self.calculate_right_lane_reward(vehicle, road)
+        self.calculate_high_speed_reward(vehicle, config)
 
-    def _calculate_right_lane_reward(self, vehicle, road):
+    def calculate_lane_reward(self, vehicle, road):
         """
         Calculates the reward for being in the right lane and being centered in the lane.
 
@@ -89,7 +89,7 @@ class CustomReward(gymnasium.RewardWrapper):
         else:
             self.right_lane_reward = 0
 
-    def _calculate_high_speed_reward(self, vehicle, config):
+    def calculate_speed_reward(self, vehicle, config):
         """
         Calculates the reward for the vehicle's speed, scaling it within a specified range.
 
@@ -104,7 +104,7 @@ class CustomReward(gymnasium.RewardWrapper):
         else:
             self.high_speed_reward = np.clip(scaled_speed, 0, 1)
 
-    def _compute_final_reward(self, vehicle, config) -> SupportsFloat:
+    def compute_final_reward(self, vehicle, config) -> SupportsFloat:
         """
         Computes the final reward by summing up the individual reward components.
 
