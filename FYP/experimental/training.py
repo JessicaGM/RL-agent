@@ -8,23 +8,27 @@ class Training:
     Class for training.
 
     Attributes:
-        env: The environment for the agent.
-        action_type (str): The type of action for the environment ('continuous' or 'high-level' for continuous
+        - env: The environment for the agent.
+        - action_type (str): The type of action for the environment (`continuous` or `high-level` for continuous
             or hierarchical agent, respectively).
-        log_path (str): The directory path where log files will be saved.
-        model_path (str): The file path for saving the trained or updated model.
-        total_timesteps (int): The total number of timesteps for training.
-        mode (str): The mode of operation ('train' or 'train_more' to train new model or to continue training a model,
+        - log_path (str): The directory path where log files will be saved.
+        - model_path (str): The file path for saving the trained model.
+        - total_timesteps (int): The total number of timesteps for training.
+        - mode (str): The mode of operation (`train` or `train_more` to train new model or to continue training a model,
             respectively).
+        - updated_model_path (str): The file path for saving the updated trained model. Default to None, however,
+            the path must be specified if `mode='train_more'`
     """
 
-    def __init__(self, env, action_type, log_path, model_path, total_timesteps=int(2e4), mode="train"):
+    def __init__(self, env, action_type, log_path, model_path, total_timesteps=int(2e4),
+                 mode="train", updated_model_path="None"):
         self.env = env
         self.action_type = action_type
         self.log_path = log_path
         self.model_path = model_path
         self.total_timesteps = total_timesteps
         self.mode = mode
+        self.updated_model_path = updated_model_path
 
     def run(self):
         """
@@ -54,7 +58,7 @@ class Training:
         model.learn(total_timesteps=self.total_timesteps, callback=callback)
 
         # Save the model after training
-        model.save(self.model_path if self.mode == "train" else self.model_path.replace("model", "updated_model"))
+        model.save(self.model_path if self.mode == "train" else self.updated_model_path)
 
         return model
 
