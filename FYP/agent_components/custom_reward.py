@@ -20,8 +20,8 @@ class CustomReward(gymnasium.RewardWrapper):
         env (gym.Env): The environment to wrap.
         """
         super().__init__(env)
-        self.right_lane_reward = 0
-        self.high_speed_reward = 0
+        self.lane_reward = 0
+        self.speed_reward = 0
         self.lane_position_tolerance = (1 / (self.env.unwrapped.config['policy_frequency'])) * 1.5
 
     def reward(self, reward: SupportsFloat) -> SupportsFloat:
@@ -58,8 +58,8 @@ class CustomReward(gymnasium.RewardWrapper):
 
         # Update the 'info' dictionary with detailed reward components
         info['rewards'] = {
-            'right_lane_reward': self.right_lane_reward,
-            'high_speed_reward': self.high_speed_reward
+            'right_lane_reward': self.lane_reward,
+            'high_speed_reward': self.speed_reward
         }
 
         info['on_road'] = self.env.unwrapped.vehicle.on_road
@@ -85,9 +85,9 @@ class CustomReward(gymnasium.RewardWrapper):
         lane_position = vehicle.lane_index[2]
         neighbours = road.network.all_side_lanes(vehicle.lane_index)
         if self.lane_position_tolerance > vehicle.lane_offset[1] > - self.lane_position_tolerance:
-            self.right_lane_reward = lane_position / max(len(neighbours) - 1, 1)
+            self.lane_reward = lane_position / max(len(neighbours) - 1, 1)
         else:
-            self.right_lane_reward = 0
+            self.lane_reward = 0
 
     def calculate_speed_reward(self, vehicle, config):
         """
@@ -100,9 +100,9 @@ class CustomReward(gymnasium.RewardWrapper):
         forward_speed = vehicle.speed * np.cos(vehicle.heading)
         scaled_speed = utils.lmap(forward_speed, config["reward_speed_range"], [0, 1])
         if scaled_speed > 1:
-            self.high_speed_reward = 0
+            self.speed_reward = 0
         else:
-            self.high_speed_reward = np.clip(scaled_speed, 0, 1)
+            self.speed_reward = np.clip(scaled_speed, 0, 1)
 
     def compute_final_reward(self, vehicle, config) -> SupportsFloat:
         """
@@ -111,8 +111,8 @@ class CustomReward(gymnasium.RewardWrapper):
         Returns:
         SupportsFloat: The final computed reward.
         """
-        reward = (config["right_lane_reward"] * self.right_lane_reward
-                  + config["high_speed_reward"] * self.high_speed_reward)
+        reward = (config["right_lane_reward"] * self.lane_reward
+                  + config["high_speed_reward"] * self.speed_reward)
 
         # Normalize the reward if specified in the configuration
         if config.get("normalize_reward", False):
