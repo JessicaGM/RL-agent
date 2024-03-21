@@ -29,7 +29,6 @@ class ConfigEnv:
                 "features": ["presence", "x", "y", "vx", "vy", "heading", "cos_h",
                              "sin_h", "cos_d", "sin_d", "long_off", "lat_off", "ang_off"],
             },
-            # do not change:
             "action": {
                 "type": "ContinuousAction",
                 "longitudinal": True,
@@ -37,6 +36,7 @@ class ConfigEnv:
             },
             "simulation_frequency": 15,  # [Hz]
             "policy_frequency": 15,  # [Hz]
+            # ------------------
             "lanes_count": 5,
             "vehicles_count": 20,
             "controlled_vehicles": 1,

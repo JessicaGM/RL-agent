@@ -20,8 +20,8 @@ class CustomActions(gym.ActionWrapper):
         episode_count (int): Counter for the number of episodes processed, useful for training info.
         subpolicies (dict): A mapping from discrete action IDs to their corresponding sub-policy methods.
         action_space (gym.spaces): The action space of the wrapped environment, overridden by the custom action space.
-        left_most_lane (int): Index of the leftmost lane in the environment.
-        right_most_lane (int): Index of the rightmost lane in the environment.
+        leftmost_lane (int): Index of the leftmost lane in the environment.
+        rightmost_lane (int): Index of the rightmost lane in the environment.
 
     Methods:
         reset(**kwargs): Resets the environment and counters.
@@ -43,8 +43,8 @@ class CustomActions(gym.ActionWrapper):
         self.episode_count = 0
         self.subpolicies = self.HL_actions()
         self.action_space = spaces.Discrete(len(self.subpolicies))
-        self.left_most_lane = 0
-        self.right_most_lane = self.env.unwrapped.config['lanes_count'] - 1
+        self.leftmost_lane = 0
+        self.rightmost_lane = self.env.unwrapped.config['lanes_count'] - 1
 
     def reset(self, **kwargs):
         """
@@ -131,7 +131,7 @@ class CustomActions(gym.ActionWrapper):
             bool: True if the lane change is possible, False otherwise.
         """
         destination_lane = self.env.unwrapped.vehicle.lane_index[2] + change
-        return self.left_most_lane <= destination_lane <= self.right_most_lane
+        return self.leftmost_lane <= destination_lane <= self.rightmost_lane
 
     def speed_change_possible(self, change):
         """
