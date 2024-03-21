@@ -14,6 +14,8 @@ class ConfigEnv:
     Attributes:
         id (str): Identifier for the Gymnasium highway environment.
         config (dict): Environment configuration parameters including simulation settings and reward structures.
+    See:
+        highway_env.py class for taken config values
     """
 
     def __init__(self):
