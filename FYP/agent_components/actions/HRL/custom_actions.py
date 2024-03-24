@@ -175,7 +175,7 @@ class CustomActions(gym.ActionWrapper):
         self.timesteps_HL += 1
 
         # Useful for evaluation logs
-        info["HL_step_count"] = self.HL_step_count     # should be the same as episode len
+        info["HL_step_count"] = self.HL_step_count
         info["LL_step_count"] = self.LL_step_count
         info["pos_x"] = obs[0][1]
         info["pos_y"] = obs[0][2]
