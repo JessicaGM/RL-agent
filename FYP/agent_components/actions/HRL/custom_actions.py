@@ -145,7 +145,8 @@ class CustomActions(gym.ActionWrapper):
 
     def step(self, action):
         """
-        Performs a high-level action in the environment using appropriate subpolicy and updates step counts.
+        Performs a high-level action (made of a sequence of low-level actions based on the subpolicy) in the environment
+        and updates step counts.
 
         Returns: A tuple of:
             obs: The observation after taking the action.
