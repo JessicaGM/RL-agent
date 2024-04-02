@@ -4,6 +4,8 @@ from FYP.agent_components.custom_reward import CustomReward
 from FYP.agent_components.actions.HRL.custom_actions import CustomActions
 from FYP.agent_components.actions.continuous.continuous_actions import ContinuousActions
 
+from FYP.agent_components.additional.low_level_split_env import LowLevelSplitEnv
+
 
 class ConfigEnv:
     """
@@ -85,7 +87,15 @@ class ConfigEnv:
 
         if custom_rewards == "yes":
             env = CustomReward(env)
-        if action_type == "high-level":
+
+        # Start of additional functionality
+        if action_type == "low-level-slow-down-1":
+            env = LowLevelSplitEnv(env, -1)
+        elif action_type == "low-level-speed-up-1":
+            env = LowLevelSplitEnv(env, 1)
+        # End  of additional functionality
+
+        elif action_type == "high-level":
             env = CustomActions(env)
         else:
             env = ContinuousActions(env)

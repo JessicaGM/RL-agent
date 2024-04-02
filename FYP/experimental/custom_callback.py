@@ -33,4 +33,11 @@ class CustomCallback(BaseCallback):
                 self.logger.record("custom/step_count", self.env_wrapper.step_count)
                 self.logger.record("custom/episode_count", self.env_wrapper.episode_count)
                 self.logger.record("custom/timesteps", self.env_wrapper.timesteps)
+
+            # Additional functionality
+            if self.action_type == "low-level-slow-down-1" or self.action_type == "low-level-speed-up-1":
+                self.logger.record("custom/step_count", self.env_wrapper.step_count)
+                self.logger.record("custom/episode_count", self.env_wrapper.episode_count)
+                self.logger.record("custom/timesteps", self.env_wrapper.timesteps)
+                self.logger.record("custom/done_count_all_episodes", self.env_wrapper.done_count_all_episodes)
         return True
