@@ -32,7 +32,7 @@ class EvaluationProcessor:
         self.mean_episode_return = df['r'].mean()
         if action_type == "high-level":
             self.mean_episode_length = df['LL_step_count'].mean()
-        if action_type == "high-level":
+        if action_type == "continuous":
             self.mean_episode_length = df['l'].mean()
 
     def display_results(self):
