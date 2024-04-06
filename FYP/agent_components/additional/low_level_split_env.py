@@ -33,7 +33,6 @@ class LowLevelSplitEnv(gym.ActionWrapper):
         """
         self.step_count = 0
         self.episode_count += 1
-        self.initial_vehicle_lane = self.env.unwrapped.vehicle.lane_index
         self.desired_speed = self.get_current_speed() + self.change
         self.last_speed = self.get_current_speed()
         return self.env.reset(**kwargs)
@@ -68,7 +67,6 @@ class LowLevelSplitEnv(gym.ActionWrapper):
         current_speed = self.get_current_speed()
 
         speed_reward_value = 1
-        other_reward_value = 1
 
         speed_reward = 0
         other_reward = 0
