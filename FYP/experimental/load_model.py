@@ -12,8 +12,7 @@ class LoadModel:
     """Class for loading trained model to interact with the environment."""
 
     def __init__(self, model_path, action_type, custom_rewards, render_mode=None, algorithm_type=None,
-                 eval_log_path=None,
-                 num_episodes=1):
+                 eval_log_path=None, num_episodes=1):
         """
         Initialize instance.
 
@@ -138,5 +137,5 @@ if __name__ == "__main__":
     # eval_log_path = "eval_logs/highway-env_20-cars_no-model_continuous"
     # num_episodes = 1000
 
-    LoadModel(model_path=model_path, algorithm_type=algorithm_type, action_type=action_type, custom_rewards=custom_rewards,
-              eval_log_path=eval_log_path, num_episodes=num_episodes).interact_with_environment()
+    LoadModel(model_path=model_path, algorithm_type=algorithm_type, action_type=action_type,
+              custom_rewards=custom_rewards, render_mode=render_mode, eval_log_path=eval_log_path, num_episodes=num_episodes).interact_with_environment()
