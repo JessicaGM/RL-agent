@@ -1,5 +1,6 @@
 import logging
 
+from gymnasium.wrappers import RecordVideo
 from stable_baselines3.common.monitor import Monitor
 
 from FYP.agent_components.config_env import ConfigEnv
@@ -12,22 +13,24 @@ class LoadModel:
     """Class for loading trained model to interact with the environment."""
 
     def __init__(self, model_path, action_type, custom_rewards, render_mode=None, algorithm_type=None,
-                 eval_log_path=None, num_episodes=1):
+                 eval_log_path=None, num_episodes=1, video_log_path=None):
         """
         Initialize instance.
 
         Parameters:
         - model_path (str): Path to the saved RL model.
-        - algorithm_type (str): Type of reinforcement learning algorithm used PPO or None, None by default -
-            it result random action selection rather than use of trained model.
-        - model: The loaded RL model, initially None until `load_model` is called.
+        - algorithm_type (str): Type of reinforcement learning algorithm used (PPO or None). None results
+                              in random action selection rather than using a trained model.
         - action_type (str): Type of action space in the environment (high-level or continuous).
-        - custom_reward (str): Specifies the type of rewards to be used in the environment. `no` for
-                    original rewards from the original gym environment, `yes` for custom rewards.
-        - render_mode (str): Render mode (`human`, `rgb_array`, or None) for visual output.
-        - eval_log_path (str): Path to store evaluation log (optional). If specified Monitor wrapper will be used to
-                    save the episode reward, length, time and other data for specified number of episodes in a csv file.
-        - num_episodes (int): Number of episodes to render or perform evaluation. Default to 1.
+        - custom_rewards (str): Specifies the type of rewards to be used in the environment. `no` for original rewards
+                              from the original gym environment, `yes` for custom rewards.
+        - render_mode (str): Render mode (`human`, `rgb_array`, or None) for visual output,
+                             `rgb_array` only compatible with recording.
+        - eval_log_path (str): Path to store evaluation log (optional). If specified, Monitor wrapper will be used to
+                              save the episode reward, length, time, and other data for a specified number of episodes
+                              in a CSV file.
+        - num_episodes (int): Number of episodes to render or perform evaluation. Default is 1.
+        - video_log_path (str): Path to store recorded video (optional if want to record, with one episode only).
         """
         self.model_path = model_path
         self.algorithm_type = algorithm_type
@@ -37,6 +40,7 @@ class LoadModel:
         self.render_mode = render_mode
         self.eval_log_path = eval_log_path
         self.num_episodes = num_episodes
+        self.video_log_path = video_log_path
 
     def load_model(self):
         """Load the RL model based on the specified algorithm type."""
@@ -57,23 +61,20 @@ class LoadModel:
         Interact with the gym environment using the loaded RL model.
         """
         try:
-            env = ConfigEnv().create(action_type=self.action_type, custom_rewards=self.custom_rewards,
-                                     render_mode=self.render_mode)
+            if self.video_log_path is not None:
+                env = ConfigEnv().create(action_type=self.action_type, custom_rewards=self.custom_rewards,
+                                         render_mode="rgb_array")
+                env = RecordVideo(env, self.video_log_path)
+                self.num_episodes = 1
+            else:
+                env = ConfigEnv().create(action_type=self.action_type, custom_rewards=self.custom_rewards,
+                                         render_mode=self.render_mode)
         except Exception as e:
             logging.error(f"Environment setup failed: {e}")
             return
 
         if self.eval_log_path is not None:
-            if self.action_type == "high-level":
-                info_keywords = ('HL_step_count', 'LL_step_count', 'pos_x', 'pos_y', 'speed', 'average_speed',
-                                 'right_lane_count', 'crashed', 'on_road', 'truncated', )
-            elif self.action_type == "continuous":
-                info_keywords = ('step_count', 'pos_x', 'pos_y', 'speed', 'average_speed', 'right_lane_count',
-                                 'crashed', 'on_road', 'truncated', )
-            else:
-                logging.error("Unsupported action type")
-                return
-
+            info_keywords = self.get_info_keywords()
             env = Monitor(env, self.eval_log_path, info_keywords=info_keywords)
 
         # Load the model
@@ -97,6 +98,18 @@ class LoadModel:
                 obs, reward, done, truncated, info = env.step(action)
 
         env.close()
+
+    def get_info_keywords(self):
+        """Determine info_keywords based on action type."""
+        if self.action_type == "high-level":
+            return ('HL_step_count', 'LL_step_count', 'pos_x', 'pos_y', 'speed', 'average_speed',
+                    'right_lane_count', 'crashed', 'on_road', 'truncated',)
+        elif self.action_type == "continuous":
+            return ('step_count', 'pos_x', 'pos_y', 'speed', 'average_speed', 'right_lane_count',
+                    'crashed', 'on_road', 'truncated',)
+        else:
+            logging.error("Unsupported action type")
+            return
 
 
 if __name__ == "__main__":
@@ -137,5 +150,10 @@ if __name__ == "__main__":
     # eval_log_path = "eval_logs/highway-env_20-cars_no-model_continuous"
     # num_episodes = 1000
 
+    video_log_path = None
+    # if want to record - 1 episode:
+    # video_log_path = "video_recordings/"
+
     LoadModel(model_path=model_path, algorithm_type=algorithm_type, action_type=action_type,
-              custom_rewards=custom_rewards, render_mode=render_mode, eval_log_path=eval_log_path, num_episodes=num_episodes).interact_with_environment()
+              custom_rewards=custom_rewards, render_mode=render_mode, eval_log_path=eval_log_path,
+              num_episodes=num_episodes, video_log_path=video_log_path).interact_with_environment()
