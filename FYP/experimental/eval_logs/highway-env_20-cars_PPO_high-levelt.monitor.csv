@@ -1,3 +1,0 @@
-#{"t_start": 1712866765.868625, "env_id": "highway-v0"}
-r,l,t,HL_step_count,LL_step_count,pos_x,pos_y,speed,average_speed,right_lane_count,crashed,on_road,truncated
-471.883333,20,10.896191,20,644,777.02637,15.945342,5.6666666666662575,14.35766045548619,25,False,True,True
