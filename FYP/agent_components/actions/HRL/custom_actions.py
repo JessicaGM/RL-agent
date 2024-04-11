@@ -22,6 +22,10 @@ class CustomActions(gym.ActionWrapper):
         action_space (gym.spaces): The action space of the wrapped environment, overridden by the custom action space.
         leftmost_lane (int): Index of the leftmost lane in the environment.
         rightmost_lane (int): Index of the rightmost lane in the environment.
+        total_speed (float): Accumulates the total speed of the vehicle across all low-level actions within
+            the current episode, so average can be calculated.
+        right_lane_count (int): Counts the number of low-level actions performed while the vehicle is in the
+            rightmost lane.
 
     Methods:
         reset(**kwargs): Resets the environment and counters.
@@ -45,6 +49,8 @@ class CustomActions(gym.ActionWrapper):
         self.action_space = spaces.Discrete(len(self.subpolicies))
         self.leftmost_lane = 0
         self.rightmost_lane = self.env.unwrapped.config['lanes_count'] - 1
+        self.total_speed = 0
+        self.right_lane_count = 0
 
     def reset(self, **kwargs):
         """
@@ -59,6 +65,8 @@ class CustomActions(gym.ActionWrapper):
         self.HL_step_count = 0
         self.LL_step_count = 0
         self.episode_count += 1
+        self.total_speed = 0
+        self.right_lane_count = 0
 
         return self.env.reset(**kwargs)
 
@@ -148,12 +156,12 @@ class CustomActions(gym.ActionWrapper):
         Performs a high-level action (made of a sequence of low-level actions based on the subpolicy) in the environment
         and updates step counts.
 
-        Returns: A tuple of:
+        Returns:
             obs: The observation after taking the action.
             cumulative_reward: The reward obtained after executing the high-level action (all low-level actions).
             terminated: A boolean indicating if the episode has ended.
             truncated: A boolean indicating if the episode was truncated.
-            info: A dictionary with additional information about the step.
+            info: A dictionary with additional information, including custom tracking metrics.
         """
         changer = self.subpolicies[int(action)]()
 
@@ -165,10 +173,20 @@ class CustomActions(gym.ActionWrapper):
 
         # Execute low-level until high-level action is done
         obs, reward, terminated, truncated, info = changer.step()
+
+        self.total_speed += self.env.unwrapped.vehicle.speed
+        if self.env.unwrapped.vehicle.lane_index[2] == self.rightmost_lane:
+            self.right_lane_count += 1
+
         cumulative_reward = reward
+
         while not changer.done() and not terminated:
             obs, reward, terminated, truncated, info = changer.step()
             cumulative_reward += reward
+
+            self.total_speed += self.env.unwrapped.vehicle.speed
+            if self.env.unwrapped.vehicle.lane_index[2] == self.rightmost_lane:
+                self.right_lane_count += 1
 
         self.LL_step_count += changer.step_count
         self.timesteps_LL += changer.step_count
@@ -180,5 +198,9 @@ class CustomActions(gym.ActionWrapper):
         info["LL_step_count"] = self.LL_step_count
         info["pos_x"] = obs[0][1]
         info["pos_y"] = obs[0][2]
+        info["average_speed"] = self.total_speed / max(1, self.LL_step_count)
+        info["right_lane_count"] = self.right_lane_count
+        info["on_road"] = self.env.unwrapped.vehicle.on_road
+        info["truncated"] = truncated
 
         return obs, cumulative_reward, terminated, truncated, info

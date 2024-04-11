@@ -64,7 +64,7 @@ class Training:
 
 
 if __name__ == "__main__":
-    # Configuration
+    # See parameters in the top of this class to configure own training
 
     action_type = "high-level"
     mode = "train"
