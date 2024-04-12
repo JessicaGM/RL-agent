@@ -131,7 +131,7 @@ if __name__ == "__main__":
     # algorithm_type = "PPO"
     # custom_rewards = "no"
     # render_mode = "human"
-    # eval_log_path = "eval_logs/highway-env_20-cars_PPO_continuous-tes"
+    # eval_log_path = "eval_logs/highway-env_20-cars_PPO_continuous"
     # num_episodes = 1000
 
     # to render/evaluate 1000 episodes for high-level without model
