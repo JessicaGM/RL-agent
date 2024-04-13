@@ -90,6 +90,7 @@ class LoadModel:
 
             while not (done or truncated):
                 if self.algorithm_type is None:
+                    # Use random action (without model)
                     action = env.action_space.sample()
                 else:
                     # Predict the action using the model
