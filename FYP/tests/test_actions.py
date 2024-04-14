@@ -50,9 +50,9 @@ def test_speed_change_possible(wrapped_env):
     """Test speed change possible method."""
     # Min speed reached
     wrapped_env.vehicle.speed = Vehicle.MIN_SPEED
-    # Slow down by 2m/s
+    # Slow down by 1m/s
     assert not wrapped_env.speed_change_possible(wrapped_env.subpolicies[3]().change)
-    # Speed up by 2m/s
+    # Speed up by 1m/s
     assert wrapped_env.speed_change_possible(wrapped_env.subpolicies[4]().change)
 
     # Max speed reached
