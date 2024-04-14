@@ -1,0 +1,9 @@
+gymnasium~=0.29.1
+pytest~=7.4.3
+numpy~=1.26.1
+torch~=2.1.0
+matplotlib~=3.8.0
+pygame~=2.5.2
+setuptools~=65.5.1
+pandas~=2.1.1
+scipy~=1.11.3
