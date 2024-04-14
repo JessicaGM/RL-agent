@@ -95,7 +95,6 @@ class LoadModel:
                 else:
                     # Predict the action using the model
                     action, _ = self.model.predict(obs, deterministic=True)
-                # Take the predicted action in the environment
                 obs, reward, done, truncated, info = env.step(action)
 
         env.close()
