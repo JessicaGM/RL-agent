@@ -33,7 +33,7 @@ def test_initialise_subpolicies(wrapped_env):
     """Test if subpolicies are initialized correctly."""
     subpolicies = wrapped_env.HL_actions()
     assert isinstance(subpolicies, dict)
-    assert len(subpolicies) == 6
+    assert len(subpolicies) == 5
 
 
 def test_lane_change_possible(wrapped_env):
