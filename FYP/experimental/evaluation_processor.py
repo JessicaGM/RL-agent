@@ -21,7 +21,6 @@ class EvaluationProcessor:
          mean_overall_speed (float): The average speed of the vehicle across episodes.
          collision_rate (float): The percentage of episodes that ended with a collision.
          off_road_rate (float): The percentage of episodes where the vehicle went off-road.
-         collision_and_off_road_rate (float): The percentage of episodes with both a collision and an off-road event.
          truncated_rate (float): The percentage of episodes that were truncated.
      """
 
@@ -36,7 +35,6 @@ class EvaluationProcessor:
         self.mean_overall_speed = None
         self.collision_rate = None
         self.off_road_rate = None
-        self.collision_and_off_road_rate = None
         self.truncated_rate = None
 
     def process_csv(self):
@@ -63,8 +61,6 @@ class EvaluationProcessor:
         self.mean_overall_speed = df['average_speed'].mean()
         self.collision_rate = df['crashed'].astype(bool).mean() * 100
         self.off_road_rate = (~df['on_road'].astype(bool)).mean() * 100
-        self.collision_and_off_road_rate = len(
-            df[df['crashed'].astype(bool) & (~df['on_road'].astype(bool))]) / self.num_episodes * 100
         self.truncated_rate = df['truncated'].astype(bool).mean() * 100
 
     def display_results(self):
@@ -80,7 +76,6 @@ class EvaluationProcessor:
         print(f"Mean speed: {self.mean_overall_speed:.2f} m/s")
         print(f"Off-road rate: {self.off_road_rate:.2f}%")
         print(f"Collision rate: {self.collision_rate:.2f}%")
-        print(f"Both collision and off-road rate: {self.collision_and_off_road_rate:.2f}%")
         print(f"Truncated rate: {self.truncated_rate:.2f}%")
 
 
